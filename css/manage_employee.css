@@ -18,8 +18,11 @@
   padding: 8px 12px;
   border-radius: 6px;
   text-decoration: none;
-  background: #2b7cff;
+  background: #6d28d9;
   color: #fff;
+}
+.btn:hover {
+    background: #5b21b6;
 }
 .btn.danger {
   background: #d9534f;
@@ -78,7 +81,7 @@ table.employee-table td {
     margin-top: 10px;
 }
 
-.popup-content input {
+.popup-content input,select{
     width: 100%;
     padding: 8px;
     margin-top: 3px;

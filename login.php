@@ -53,13 +53,13 @@ $user = $result->fetch_assoc();
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
             if($user['role'] == 'manager'){
-              header("Location:manager.html");
+              header("Location:manager.php");
               $_SESSION['user_id']=$user['user_id'];
             }elseif($user['role']=='employee'){
-              header("Location:employee.html");
+              header("Location:employee.php");
               $_SESSION['user_id']=$user['user_id'];
             }elseif($user['role']=='HR'){
-            header("Location:hr.html");
+            header("Location:hr.php");
             $_SESSION['user_id']=$user['user_id'];
             }
             exit;

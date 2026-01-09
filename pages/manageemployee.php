@@ -224,9 +224,9 @@ $result = mysqli_query($conn, "SELECT e.*, u.username AS email, u.user_id AS use
         <h3><?= htmlspecialchars($currentUserName) ?></h3>
 
         <hr />
-        <a href="manageemployee.html" class="menu-item">Manage Employees</a
+        <a href="manageemployee.php" class="menu-item">Manage Employees</a
         ><br />
-        <a href="payroll.html" class="menu-item">Manage Payroll</a>
+        <a href="payroll.php" class="menu-item">Manage Payroll</a>
       </div>
     </aside>
 
@@ -294,7 +294,11 @@ $result = mysqli_query($conn, "SELECT e.*, u.username AS email, u.user_id AS use
                 <input type="text" name="address">
 
                 <label>Department:</label>
-                <input type="text" id="empDept" name="department"/>
+                <select name="department" id="empDept">
+                  <option value="Human Resource">HR</option>
+                  <option value="Logistics">Logistics</option>
+                  <option value="Operations">Operations</option>
+                </select>
 
                 <label>Role</label>
                 <input type="text" id="empPost" name="role"/>

@@ -1,3 +1,20 @@
+<?php
+session_start();
+include "php/db.php";
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location:login.php");
+    exit();
+}
+
+// Fetch current user info for sidebar
+$currentUserId = $_SESSION['user_id'];
+$userQuery = mysqli_query($conn, "SELECT name FROM employees WHERE user_id='$currentUserId'");
+$userData = mysqli_fetch_assoc($userQuery);
+$currentUserName = $userData['name'];
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,7 +36,7 @@
     <div class="user-box">
         <p>
       <img src="assets/emp.jpg" class="user-photo">
-      <h3>hr</h3></p>
+        <h3><?= htmlspecialchars($currentUserName) ?></h3>
         <hr>
         <a href="pages/manageemployee.php" class="menu-item">Manage Employees</a><br>
         <a href="pages/payroll.html" class="menu-item">Manage Payroll</a>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>EMS Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <img src="./assets/employee.png" alt="" class="nav-logo">
+    <h1 class="logo">EMS</h1>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar-menu">
+    <div class="user-box">
+        <p>
+      <img src="assets/emp.jpg" class="user-photo">
+      <h3>Employee</h3></p>
+        <hr>
+        <a href="pages/profile.html" class="menu-item">My Profile</a><br>
+        <a href="pages/payslip.html" class="menu-item">My Payslip</a><br>
+        <a href="pages/requestleave.html" class="menu-item">Request Leave</a><br>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main id="main-content">
+    <h1>Welcome</h1>
+  </main>
+
+  <script>
+    function logout(){
+      window.location.href="login.php"
+    }
+  </script>
+</body>
+</html>

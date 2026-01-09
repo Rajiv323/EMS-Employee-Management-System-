@@ -1,0 +1,77 @@
+
+.container {
+    width: 70%;
+    margin: 40px 270px;
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.2);
+}
+
+.empprofile{
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    object-fit:cover;
+    margin-bottom:10px;
+}
+h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #6d28d9;
+}
+
+/* Leave Card */
+.leave-card {
+    justify-content: space-between;
+    background: #fafafa;
+    padding: 18px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #363438;
+    transition: 0.3s;
+    width: 25%;
+}
+
+.leave-card p {
+    margin: 4px 0;
+}
+
+.right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Buttons */
+.approve-btn {
+    padding: 10px 15px;
+    background: #16a34a;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.reject-btn {
+    padding: 10px 15px;
+    background: #dc2626;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Visual Feedback */
+.approved {
+    border-left: 6px solid #16a34a !important;
+    opacity: 0.9;
+}
+
+.rejected {
+    border-left: 6px solid #dc2626 !important;
+    opacity: 0.9;
+}

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>EMS Dashboard</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/payroll.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <img src="../assets/employee.png" alt="" class="nav-logo">
+    <h1 class="logo">EMS</h1>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar-menu">
+    <div class="user-box">
+        <p>
+      <img src="../assets/emp.jpg" class="user-photo">
+      <h3>hr</h3></p>
+        <hr>
+        <a href="manageemployee.php" class="menu-item">Manage Employees</a><br>
+        <a href="payroll.html" class="menu-item">Manage Payroll</a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main id="main-content">
+     <div class="main">
+        <div class="toolbar">
+            <h2>Manage Payroll</h2>
+            <button class="btn" onclick="openAddPayroll()">+ Add Payroll</button>
+        </div>
+
+        <div class="detail-card">
+
+            <table class="payroll-table">
+                <thead>
+                    <tr>
+                        <th>Emp ID</th>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Base Salary</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="payrollBody">
+                    <td>1</td>
+                    <td>Ram</td>
+                    <td>Operation</td>
+                    <td>20000</td>
+                    <td>Employee</td>
+                    <td><Button>Edit</Button></td>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+    <!-- POPUP FORM -->
+    <div id="popup" class="popup">
+        <div class="popup-content">
+            <h3>Add Payroll Entry</h3>
+
+            <label>Employee Name:</label>
+            <input type="text" id="pName">
+
+            <label>Department:</label>
+            <input type="text" id="pDept">
+
+            <label>Base Salary:</label>
+            <input type="number" id="pSalary">
+
+            <label>Status:</label>
+            <select id="pStatus">
+                <option value="Paid">Paid</option>
+                <option value="Pending">Pending</option>
+            </select>
+
+            <div class="popup-buttons">
+                <button class="save-btn">Add</button>
+                <button class="close-btn" onclick="closeAddPayroll()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+  </main>
+
+  <script>
+    function logout(){
+      window.location.href="../login.php"
+    }
+    function openAddPayroll(){
+        document.getElementById("popup").style.display="flex";
+    }
+    function closeAddPayroll(){
+        document.getElementById("popup").style.display="none";
+    }
+  </script>
+</body>
+</html>

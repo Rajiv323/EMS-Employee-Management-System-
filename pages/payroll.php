@@ -9,9 +9,10 @@ if (!isset($_SESSION['user_id'])) {
 
 // Fetch current user info for sidebar
 $currentUserId = $_SESSION['user_id'];
-$userQuery = mysqli_query($conn, "SELECT name FROM employees WHERE user_id='$currentUserId'");
+$userQuery = mysqli_query($conn, "SELECT name, photo FROM employees WHERE user_id='$currentUserId'");
 $userData = mysqli_fetch_assoc($userQuery);
 $currentUserName = $userData['name'];
+$currentUserPhoto = $userData['photo'] ?? null;
 ?>
 
 <!DOCTYPE html>
@@ -35,8 +36,8 @@ $currentUserName = $userData['name'];
   <aside class="sidebar" id="sidebar-menu">
     <div class="user-box">
         <p>
-      <img src="../assets/emp.jpg" class="user-photo">
-      <h3><?= htmlspecialchars($currentUserName) ?></h3></p>
+    <img src="<?= htmlspecialchars(!empty($currentUserPhoto) ? '../assets/' . $currentUserPhoto : '../assets/emp.jpg') ?>" class="user-photo">
+    <h3><?= htmlspecialchars($currentUserName) ?></h3></p>
         <hr>
         <a href="manageemployee.php" class="menu-item">Manage Employees</a><br>
         <a href="payroll.php" class="menu-item">Manage Payroll</a>

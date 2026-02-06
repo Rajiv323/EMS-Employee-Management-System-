@@ -19,9 +19,10 @@ if ($stmt) {
     $manager_department = $r['department_name'] ?? null;
     $stmt->close();
 }
-$userQuery = mysqli_query($conn, "SELECT name FROM employees WHERE user_id='$currentUserId'");
+$userQuery = mysqli_query($conn, "SELECT name, photo FROM employees WHERE user_id='$currentUserId'");
 $userData = mysqli_fetch_assoc($userQuery);
 $currentUserName = $userData['name'];
+$currentUserPhoto = $userData['photo'] ?? null;
 // handle approve/reject
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['leave_id'])) {
   $action = $_POST['action'] === 'approve' ? 'Approved' : 'Rejected';
@@ -87,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['lea
 
 // fetch pending requests - only from manager's department
 $requests = [];
-$res = $conn->prepare("SELECT l.*, e.name, e.department_name FROM leave_requests l JOIN employees e ON l.employee_id = e.emp_id WHERE l.status = 'Pending' AND e.department_name = ? ORDER BY l.applied_date ASC");
+$res = $conn->prepare("SELECT l.*, e.name, e.department_name, e.photo FROM leave_requests l JOIN employees e ON l.employee_id = e.emp_id WHERE l.status = 'Pending' AND e.department_name = ? ORDER BY l.applied_date ASC");
 if ($res) {
     $res->bind_param('s', $manager_department);
     $res->execute();
@@ -117,7 +118,7 @@ if ($res) {
   <aside class="sidebar" id="sidebar-menu">
     <div class="user-box">
         <p>
-      <img src="../assets/emp.jpg" class="user-photo">
+      <img src="<?= htmlspecialchars(!empty($currentUserPhoto) ? '../assets/' . $currentUserPhoto : '../assets/emp.jpg') ?>" class="user-photo">
       <h3><?= htmlspecialchars($currentUserName) ?></h3></p>
         <hr>
         <a href="managerprofile.php" class="menu-item">My Profile</a><br>
@@ -138,7 +139,10 @@ if ($res) {
         <?php foreach ($requests as $r): ?>
           <div class="leave-card">
             <div class="left">
-                <p><strong>Name:</strong> <?= htmlspecialchars($r['name']) ?></p>
+                <p style="display:flex; gap:10px; margin:0 0 6px 0;">
+                  <center><img src="<?= htmlspecialchars(!empty($r['photo']) ? '../assets/' . $r['photo'] : '../assets/emp.jpg') ?>" alt="photo" style="width:90px;height:90px;border-radius:10px;object-fit:cover;"></center>
+                </p>
+                <center><p><strong><?= htmlspecialchars($r['name']) ?></strong></p></center>
                 <p><strong>Department:</strong> <?= htmlspecialchars($r['department_name']) ?></p>
                 <p><strong>Leave Type:</strong> <?= htmlspecialchars($r['leave_type']) ?></p>
                 <p><strong>Reason:</strong> <?= htmlspecialchars($r['reason']) ?></p>
@@ -156,7 +160,7 @@ if ($res) {
                   <input type="hidden" name="leave_id" value="<?= (int)$r['leave_id'] ?>">
                   <input type="hidden" name="action" value="reject">
                   <button class="reject-btn" type="submit">Reject</button>
-                  <input type="text" name="remarks" placeholder="Remarks (optional)" style="margin-top:6px;">
+                  <input type="text" name="remarks" placeholder="Remarks (optional)" style="margin-top:20px;width:97%;">
                 </form>
             </div>
           </div>

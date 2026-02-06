@@ -10,9 +10,10 @@ if (!isset($_SESSION['user_id'])) {
 
 // Fetch current user info for sidebar
 $currentUserId = $_SESSION['user_id'];
-$userQuery = mysqli_query($conn, "SELECT name FROM employees WHERE user_id='$currentUserId'");
+$userQuery = mysqli_query($conn, "SELECT name, photo FROM employees WHERE user_id='$currentUserId'");
 $userData = mysqli_fetch_assoc($userQuery);
 $currentUserName = $userData['name'];
+$currentUserPhoto = !empty($userData['photo']) ? $userData['photo'] : 'emp.jpg';
 
 ?>
 
@@ -36,7 +37,7 @@ $currentUserName = $userData['name'];
   <aside class="sidebar" id="sidebar-menu">
     <div class="user-box">
         <p>
-      <img src="assets/emp.jpg" class="user-photo">
+            <img src="assets/<?= htmlspecialchars($currentUserPhoto) ?>" class="user-photo">
               <h3><?= htmlspecialchars($currentUserName) ?></h3>
         </p>
         <hr>

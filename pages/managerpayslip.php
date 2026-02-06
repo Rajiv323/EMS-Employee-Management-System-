@@ -63,7 +63,7 @@ if (!empty($employee['department_name'])) {
   <aside class="sidebar" id="sidebar-menu">
     <div class="user-box">
         <p>
-      <img src="../assets/emp.jpg" class="user-photo">
+      <img src="<?= htmlspecialchars(!empty($employee['photo']) ? '../assets/' . $employee['photo'] : '../assets/emp.jpg') ?>" class="user-photo">
       <h3><?= htmlspecialchars($employee['name'] ?? 'Manager') ?></h3></p>
         <hr>
         <a href="managerprofile.php" class="menu-item">My Profile</a><br>

@@ -2,3 +2,4 @@
 2026-01-09T10:50:08+01:00 - SQL: UPDATE leave_requests SET status = ?, approved_by = ?, remarks = ? WHERE leave_id = ? | params: [Approved, 101, , 4] | affected=1
 2026-01-09T10:55:37+01:00 - SQL: UPDATE leave_requests SET status = ?, approved_by = ?, remarks = ? WHERE leave_id = ? | params: [Approved, 103, , 5] | affected=1
 2026-01-18T04:05:13+01:00 - SQL: UPDATE leave_requests SET status = ?, approved_by = ?, remarks = ? WHERE leave_id = ? | params: [Rejected, 112, you don't deserve, 6] | affected=1
+2026-02-06T15:24:53+01:00 - SQL: UPDATE leave_requests SET status = ?, approved_by = ?, remarks = ? WHERE leave_id = ? | params: [Rejected, 103, , 7] | affected=1

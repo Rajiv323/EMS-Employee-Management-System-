@@ -9,17 +9,18 @@ if (!isset($_SESSION['user_id'])) {
 
 $currentUserId = $_SESSION['user_id'];
 $emp_id = null;
-$stmt = $conn->prepare('SELECT emp_id FROM employees WHERE user_id = ? LIMIT 1');
+$currentUserName = '';
+$currentUserPhoto = null;
+$stmt = $conn->prepare('SELECT emp_id, name, photo FROM employees WHERE user_id = ? LIMIT 1');
 if ($stmt) {
-    $stmt->bind_param('i', $currentUserId);
-    $stmt->execute();
-    $r = $stmt->get_result()->fetch_assoc();
-    $emp_id = $r['emp_id'] ?? null;
-    $stmt->close();
+  $stmt->bind_param('i', $currentUserId);
+  $stmt->execute();
+  $r = $stmt->get_result()->fetch_assoc();
+  $emp_id = $r['emp_id'] ?? null;
+  $currentUserName = $r['name'] ?? '';
+  $currentUserPhoto = $r['photo'] ?? null;
+  $stmt->close();
 }
-$userQuery = mysqli_query($conn, "SELECT name FROM employees WHERE user_id='$currentUserId'");
-$userData = mysqli_fetch_assoc($userQuery);
-$currentUserName = $userData['name'];
 $message = '';
 if (isset($_SESSION['leave_msg'])) {
   $message = $_SESSION['leave_msg'];
@@ -113,7 +114,7 @@ if ($emp_id) {
   <aside class="sidebar" id="sidebar-menu">
     <div class="user-box">
       <p>
-        <img src="../assets/emp.jpg" class="user-photo">
+        <img src="<?= htmlspecialchars(!empty($currentUserPhoto) ? '../assets/' . $currentUserPhoto : '../assets/emp.jpg') ?>" class="user-photo">
         <h3><?= htmlspecialchars($currentUserName) ?></h3>
       </p>
       <hr>

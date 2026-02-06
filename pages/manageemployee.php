@@ -10,9 +10,10 @@ if (!isset($_SESSION['user_id'])) {
 
 // Fetch current user info for sidebar
 $currentUserId = $_SESSION['user_id'];
-$userQuery = mysqli_query($conn, "SELECT name FROM employees WHERE user_id='$currentUserId'");
+$userQuery = mysqli_query($conn, "SELECT name, photo FROM employees WHERE user_id='$currentUserId'");
 $userData = mysqli_fetch_assoc($userQuery);
 $currentUserName = $userData['name'];
+$currentUserPhoto = $userData['photo'] ?? null;
 
 // Handle Add Employee
 if (isset($_POST['addEmployee'])) {
@@ -27,15 +28,44 @@ if (isset($_POST['addEmployee'])) {
   $address    = trim($_POST['address'] ?? '');
   $date_of_birth = trim($_POST['date_of_birth'] ?? '');
   $date_of_joining = trim($_POST['date_of_joining'] ?? '');
-
   if ($name === '' || $email === '' || $password === '') {
     die('Name, email and password are required');
+  }
+
+  // Handle optional photo upload
+  $photoFilename = null;
+  if (!empty($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE) {
+    $file = $_FILES['photo'];
+    // Basic validations
+    $maxSize = 2 * 1024 * 1024; // 2MB
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+      die('File upload error');
+    }
+    if ($file['size'] > $maxSize) {
+      die('Photo too large (max 2MB)');
+    }
+    $finfo = getimagesize($file['tmp_name']);
+    if ($finfo === false) {
+      die('Uploaded file is not a valid image');
+    }
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $allowed = ['jpg','jpeg','png','gif','webp'];
+    if (!in_array($ext, $allowed)) {
+      die('Unsupported image type');
+    }
+    $targetDir = __DIR__ . '/../assets/';
+    if (!is_dir($targetDir)) @mkdir($targetDir, 0755, true);
+    $photoFilename = time() . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
+    $targetPath = $targetDir . $photoFilename;
+    if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+      die('Failed to move uploaded file');
+    }
   }
 
   // start transaction to ensure both inserts succeed
   mysqli_begin_transaction($conn);
 
-// Use prepared statements 
+  // Use prepared statements for users
   $stmt = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
   if ($stmt === false) {
     mysqli_rollback($conn);
@@ -48,14 +78,31 @@ if (isset($_POST['addEmployee'])) {
   }
   $user_id = $conn->insert_id;
   $stmt->close();
-  // Insert employee row using the detected department column
-  $sql = "INSERT INTO employees (user_id, name, role, department_name, salary, address, phone, date_of_birth, date_of_joining) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-  $stmt = $conn->prepare($sql);
-  if ($stmt === false) {
-    mysqli_rollback($conn);
-    die('Prepare failed (employees insert): ' . $conn->error . ' -- SQL: ' . $sql);
+
+  // Ensure photo column exists
+  $colRes = $conn->query("SHOW COLUMNS FROM employees LIKE 'photo'");
+  if ($colRes && $colRes->num_rows === 0) {
+    $conn->query("ALTER TABLE employees ADD COLUMN photo VARCHAR(255) NULL");
   }
-  $stmt->bind_param('isssdssss', $user_id, $name, $role, $department, $salary, $address, $phone, $date_of_birth, $date_of_joining);
+
+  // Insert employee row (include photo if present)
+  if ($photoFilename !== null) {
+    $sql = "INSERT INTO employees (user_id, name, role, department_name, salary, address, phone, date_of_birth, date_of_joining, photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($sql);
+    if ($stmt === false) {
+      mysqli_rollback($conn);
+      die('Prepare failed (employees insert with photo): ' . $conn->error . ' -- SQL: ' . $sql);
+    }
+    $stmt->bind_param('isssdsssss', $user_id, $name, $role, $department, $salary, $address, $phone, $date_of_birth, $date_of_joining, $photoFilename);
+  } else {
+    $sql = "INSERT INTO employees (user_id, name, role, department_name, salary, address, phone, date_of_birth, date_of_joining) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($sql);
+    if ($stmt === false) {
+      mysqli_rollback($conn);
+      die('Prepare failed (employees insert): ' . $conn->error . ' -- SQL: ' . $sql);
+    }
+    $stmt->bind_param('isssdssss', $user_id, $name, $role, $department, $salary, $address, $phone, $date_of_birth, $date_of_joining);
+  }
   if (!$stmt->execute()) {
     mysqli_rollback($conn);
     die('Error adding employee: ' . $stmt->error);
@@ -73,7 +120,7 @@ if (isset($_POST['deleteEmployee'])) {
 
   // Find associated user and delete both in transaction
   mysqli_begin_transaction($conn);
-  $stmt = $conn->prepare('SELECT user_id FROM employees WHERE emp_id = ?');
+  $stmt = $conn->prepare('SELECT user_id, photo FROM employees WHERE emp_id = ?');
   if ($stmt === false) {
     mysqli_rollback($conn);
     die('Prepare failed (select user): ' . $conn->error);
@@ -82,7 +129,8 @@ if (isset($_POST['deleteEmployee'])) {
   $stmt->execute();
   $res = $stmt->get_result();
   $user_id = null;
-  if ($r = $res->fetch_assoc()) $user_id = (int)$r['user_id'];
+  $photoToDelete = null;
+  if ($r = $res->fetch_assoc()) { $user_id = (int)$r['user_id']; $photoToDelete = $r['photo'] ?? null; }
   $stmt->close();
 
   // Delete related payroll records first (due to foreign key constraint)
@@ -125,6 +173,12 @@ if (isset($_POST['deleteEmployee'])) {
     $stmt->close();
   }
 
+  // Delete photo file if present
+  if (!empty($photoToDelete)) {
+    $filePath = __DIR__ . '/../assets/' . $photoToDelete;
+    if (file_exists($filePath)) @unlink($filePath);
+  }
+
   mysqli_commit($conn);
   header('Location: manageemployee.php');
   exit();
@@ -144,14 +198,64 @@ if (isset($_POST['editEmployee'])) {
   $date_of_birth = trim($_POST['date_of_birth'] ?? '');
   $date_of_joining = trim($_POST['date_of_joining'] ?? '');
 
-  mysqli_begin_transaction($conn);
-  $sql = "UPDATE employees SET name = ?, role = ?, department_name = ?, salary = ?, address = ?, phone = ?, date_of_birth = ?, date_of_joining = ? WHERE emp_id = ?";
-  $stmt = $conn->prepare($sql);
-  if ($stmt === false) {
-    mysqli_rollback($conn);
-    die('Prepare failed (update employee): ' . $conn->error . ' -- SQL: ' . $sql);
+  // Handle photo upload on edit (optional)
+  $photoFilename = null;
+  if (!empty($_FILES['photo']) && $_FILES['photo']['error'] !== UPLOAD_ERR_NO_FILE) {
+    $file = $_FILES['photo'];
+    $maxSize = 2 * 1024 * 1024;
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+      mysqli_rollback($conn);
+      die('File upload error');
+    }
+    if ($file['size'] > $maxSize) {
+      mysqli_rollback($conn);
+      die('Photo too large (max 2MB)');
+    }
+    $finfo = getimagesize($file['tmp_name']);
+    if ($finfo === false) {
+      mysqli_rollback($conn);
+      die('Uploaded file is not a valid image');
+    }
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $allowed = ['jpg','jpeg','png','gif','webp'];
+    if (!in_array($ext, $allowed)) {
+      mysqli_rollback($conn);
+      die('Unsupported image type');
+    }
+    $targetDir = __DIR__ . '/../assets/';
+    if (!is_dir($targetDir)) @mkdir($targetDir, 0755, true);
+    $photoFilename = time() . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
+    $targetPath = $targetDir . $photoFilename;
+    if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+      mysqli_rollback($conn);
+      die('Failed to move uploaded file');
+    }
   }
-  $stmt->bind_param('sssdssssi', $name, $role, $department, $salary, $address, $phone, $date_of_birth, $date_of_joining, $emp_id);
+
+  mysqli_begin_transaction($conn);
+  // Ensure photo column exists
+  $colRes = $conn->query("SHOW COLUMNS FROM employees LIKE 'photo'");
+  if ($colRes && $colRes->num_rows === 0) {
+    $conn->query("ALTER TABLE employees ADD COLUMN photo VARCHAR(255) NULL");
+  }
+
+  if ($photoFilename !== null) {
+    $sql = "UPDATE employees SET name = ?, role = ?, department_name = ?, salary = ?, address = ?, phone = ?, date_of_birth = ?, date_of_joining = ?, photo = ? WHERE emp_id = ?";
+    $stmt = $conn->prepare($sql);
+    if ($stmt === false) {
+      mysqli_rollback($conn);
+      die('Prepare failed (update employee with photo): ' . $conn->error . ' -- SQL: ' . $sql);
+    }
+    $stmt->bind_param('sssdsssssi', $name, $role, $department, $salary, $address, $phone, $date_of_birth, $date_of_joining, $photoFilename, $emp_id);
+  } else {
+    $sql = "UPDATE employees SET name = ?, role = ?, department_name = ?, salary = ?, address = ?, phone = ?, date_of_birth = ?, date_of_joining = ? WHERE emp_id = ?";
+    $stmt = $conn->prepare($sql);
+    if ($stmt === false) {
+      mysqli_rollback($conn);
+      die('Prepare failed (update employee): ' . $conn->error . ' -- SQL: ' . $sql);
+    }
+    $stmt->bind_param('sssdssssi', $name, $role, $department, $salary, $address, $phone, $date_of_birth, $date_of_joining, $emp_id);
+  }
   if (!$stmt->execute()) {
     mysqli_rollback($conn);
     die('Error updating employee: ' . $stmt->error);
@@ -238,7 +342,7 @@ $result = mysqli_query($conn, "SELECT e.*, u.username AS email, u.user_id AS use
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar-menu">
       <div class="user-box">
-        <img src="../assets/emp.jpg" class="user-photo" />
+        <img src="<?= htmlspecialchars(!empty($currentUserPhoto) ? '../assets/' . $currentUserPhoto : '../assets/emp.jpg') ?>" class="user-photo" />
         <h3><?= htmlspecialchars($currentUserName) ?></h3>
 
         <hr />
@@ -296,7 +400,7 @@ $result = mysqli_query($conn, "SELECT e.*, u.username AS email, u.user_id AS use
         <div class="popup" id="popup">
           <div class="popup-content">
             <h3>Add Employee</h3>
-                <form action="manageemployee.php" method="POST" id="employeeForm">
+                <form action="manageemployee.php" method="POST" id="employeeForm" enctype="multipart/form-data">
                 <input type="hidden" id="empId" name="emp_id" value="">
                 
                 <label>Name:</label>
@@ -320,7 +424,12 @@ $result = mysqli_query($conn, "SELECT e.*, u.username AS email, u.user_id AS use
                 </select>
 
                 <label>Role</label>
-                <input type="text" id="empPost" name="role"/>
+                <select name="role" id="empPost">
+                  <option value="">Select Role</option>
+                  <option value="HR">HR</option>
+                  <option value="employee">Employee</option>
+                  <option value="manager">Manager</option>
+                </select>
 
                 <label>Contact:</label>
                 <input type="text" id="empContact" name="phone"/>
@@ -333,6 +442,9 @@ $result = mysqli_query($conn, "SELECT e.*, u.username AS email, u.user_id AS use
 
                 <label>Salary:</label>
                 <input type="number" id="empSalary" name="salary" step="0.01" min="0"/>
+
+                <label>Profile Photo:</label>
+                <input type="file" name="photo" accept="image/*">
 
                 <div class="popup-buttons">
                 <button class="save-btn" type="submit" name="addEmployee" id="saveBtn">Add</button>
@@ -384,7 +496,10 @@ $result = mysqli_query($conn, "SELECT e.*, u.username AS email, u.user_id AS use
           document.querySelector('input[name="email"]').value = row.dataset.email || '';
           document.querySelector('input[name="address"]').value = row.dataset.address || '';
           document.querySelector('select[name="department"]').value = row.dataset.department || '';
-          document.querySelector('input[name="role"]').value = row.dataset.role || '';
+          var roleSelect = document.querySelector('select[name="role"]');
+          if (roleSelect) roleSelect.value = row.dataset.role || '';
+          // Update role enable/disable state after setting department and role
+          try { updateRoleOptions(); } catch (e) {}
           document.querySelector('input[name="phone"]').value = row.dataset.phone || '';
           document.getElementById('empSalary').value = row.dataset.salary || '';
           document.getElementById('empDOB').value = row.dataset.dob || '';
@@ -444,12 +559,52 @@ $result = mysqli_query($conn, "SELECT e.*, u.username AS email, u.user_id AS use
         document.getElementById('empPassword').removeAttribute('required');
       }
 
-      // Auto-set role based on department
-      document.querySelector('select[name="department"]').addEventListener('change', function() {
-        if (this.value === 'Human Resource') {
-          document.querySelector('input[name="role"]').value = 'HR';
+      // Enforce HR role only when department is Human Resource
+      var deptSelect = document.querySelector('select[name="department"]');
+      var roleSelect = document.querySelector('select[name="role"]');
+      function updateRoleOptions() {
+        if (!deptSelect || !roleSelect) return;
+        var isHRDept = deptSelect.value === 'Human Resource';
+        // When HR department selected, only HR role is enabled
+        for (var i = 0; i < roleSelect.options.length; i++) {
+          var opt = roleSelect.options[i];
+          if (isHRDept) {
+            // enable HR only
+            opt.disabled = opt.value !== 'HR' && opt.value !== '';
+          } else {
+            // enable all; but keep HR option disabled unless dept is HR
+            opt.disabled = false;
+            if (opt.value === 'HR') opt.disabled = false; // will be cleared
+          }
         }
-      });
+        // If HR is not allowed but currently selected, clear it
+        if (!isHRDept && roleSelect.value === 'HR') {
+          roleSelect.value = '';
+        }
+      }
+      if (deptSelect) {
+        deptSelect.addEventListener('change', function() {
+          // auto-select HR role for HR department
+          if (this.value === 'Human Resource' && roleSelect) {
+            roleSelect.value = 'HR';
+          }
+          updateRoleOptions();
+        });
+      }
+      // initialize on load
+      updateRoleOptions();
+
+      // Validate on submit to prevent invalid assignment
+      var employeeForm = document.getElementById('employeeForm');
+      if (employeeForm) {
+        employeeForm.addEventListener('submit', function(e) {
+          if (roleSelect && deptSelect && roleSelect.value === 'HR' && deptSelect.value !== 'Human Resource') {
+            e.preventDefault();
+            alert('HR role can only be assigned when Department is Human Resource.');
+            return false;
+          }
+        });
+      }
 
       // Validate name field - only letters, spaces, hyphens, and apostrophes
       document.getElementById('empName').addEventListener('input', function() {

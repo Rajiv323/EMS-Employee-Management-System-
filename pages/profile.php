@@ -36,7 +36,7 @@ $employee = $result->fetch_assoc() ?: [];
   <aside class="sidebar" id="sidebar-menu">
     <div class="user-box">
         <p>
-      <img src="../assets/emp.jpg" class="user-photo">
+      <img src="<?= htmlspecialchars(!empty($employee['photo']) ? '../assets/' . $employee['photo'] : '../assets/emp.jpg') ?>" class="user-photo">
       <h3><?= htmlspecialchars($employee['name'] ?? 'Manager') ?></h3></p>
         <hr>
         <a href="profile.php" class="menu-item">My Profile</a><br>
@@ -52,7 +52,7 @@ $employee = $result->fetch_assoc() ?: [];
 
       <div class="profile-wrapper" id="profileWrapper">
         <div class="profile-card">
-          <img id="avatar" src="../assets/emp.jpg" alt="avatar" class="avatar" />
+          <img id="avatar" src="<?= htmlspecialchars(!empty($employee['photo']) ? '../assets/' . $employee['photo'] : '../assets/emp.jpg') ?>" alt="avatar" class="avatar" />
           <div class="name" id="fullName"><?= htmlspecialchars($employee['name'] ?? 'No name') ?></div>
           <div class="role small" id="position"><?= htmlspecialchars($employee['role'] ?? '') ?></div>
           <br />

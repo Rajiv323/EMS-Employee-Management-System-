@@ -97,7 +97,7 @@ $employee = $result->fetch_assoc() ?: [];
             </div>
             <div class="field">
               <div class="label">Date Joined</div>
-              <div class="value" id="dateJoined"><?= htmlspecialchars($employee['date_joined'] ?? $employee['joined_date'] ?? '') ?></div>
+              <div class="value" id="dateJoined"><?= htmlspecialchars($employee['date_of_joining'] ?? $employee['joined_date'] ?? '') ?></div>
             </div>
           </div>
         </div>

@@ -22,15 +22,27 @@ body {
   margin-bottom: 15px;
   position: absolute;
   left: 150px;
-  height: 60vh;
+  height: 50vh;
 }
 
 .login-logo {
-  width: 380px;
+  width: 340px;
   user-select: none;
   justify-content: center;
   filter: brightness(0) invert(1);
   margin-top:-60px;
+}
+.logo-name{
+  font-size: 50px;
+  font-weight: bold;
+  color: white;
+  margin-top:-40px;
+}
+.logo-name1{
+  font-size: 30px;
+  font-weight: bold;
+  color: white;
+  margin-top:-40px;
 }
 
 /* ============================
@@ -126,9 +138,4 @@ body {
   text-decoration: none;
   color: #6d28d9;
 ;
-}
-.logo-name{
-  font-size: 50px;
-  font-weight: bold;
-  color: white;
 }

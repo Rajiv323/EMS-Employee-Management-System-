@@ -114,19 +114,34 @@ $currentUserName = $userData['name'];
                 <input type="hidden" id="payrollEmpId" name="emp_id">
 
                 <label>Employee ID:</label>
-                <input type="text" id="pEmpIdDisplay">
+                <select id="pEmpIdDisplay" name="emp_id_select" onchange="populateEmployeeDetails()">
+                    <option value="">Select Employee</option>
+                    <?php
+                    // Fetch all employees for dropdown
+                    $empQuery = "SELECT emp_id, name, department_name, role, salary FROM employees ORDER BY emp_id ASC";
+                    $empResult = mysqli_query($conn, $empQuery);
+                    if ($empResult && mysqli_num_rows($empResult) > 0) {
+                        while ($empRow = mysqli_fetch_assoc($empResult)) {
+                            echo '<option value="'.$empRow['emp_id'].'" data-name="'.$empRow['name'].'" data-department="'.$empRow['department_name'].'" data-role="'.$empRow['role'].'" data-salary="'.$empRow['salary'].'">'.$empRow['emp_id'].' - '.$empRow['name'].'</option>';
+                        }
+                    }
+                    ?>
+                </select>
 
                 <label>Employee Name:</label>
-                <input type="text" id="pName" name="name">
+                <input type="text" id="pName" name="name" readonly>
 
                 <label>Department:</label>
-                <input type="text" id="pDept" name="department">
+                <input type="text" id="pDept" name="department" readonly>
+
+                <label>Role:</label>
+                <input type="text" id="pRole" name="role" readonly>
 
                 <label>Base Salary:</label>
-                <input type="number" id="pSalary" name="base_salary" step="0.01" oninput="recalcNet()">
+                <input type="number" id="pSalary" name="base_salary" step="0.01" oninput="calculateDeductions()">
 
                 <label>Deductions:</label>
-                <input type="number" id="pDeductions" name="deductions" step="0.01" oninput="recalcNet()">
+                <input type="number" id="pDeductions" name="deductions" step="0.01" readonly>
 
                 <label>Net Salary:</label>
                 <input type="number" id="pNet" name="net_salary" readonly>
@@ -153,10 +168,38 @@ $currentUserName = $userData['name'];
         document.getElementById('payrollForm').reset();
         document.getElementById('payrollEmpId').value = '';
         document.getElementById('pEmpIdDisplay').value = '';
+        document.getElementById('pName').value = '';
+        document.getElementById('pDept').value = '';
+        document.getElementById('pRole').value = '';
+        document.getElementById('pSalary').value = '';
+        document.getElementById('pDeductions').value = '';
+        document.getElementById('pNet').value = '';
         document.getElementById('addPayrollBtn').style.display = 'inline-block';
         document.getElementById('updatePayrollBtn').style.display = 'none';
         document.getElementById('popup').style.display = 'flex';
         recalcNet();
+    }
+    function populateEmployeeDetails(){
+        var select = document.getElementById('pEmpIdDisplay');
+        var selectedOption = select.options[select.selectedIndex];
+        var empId = select.value;
+        
+        if (empId) {
+            document.getElementById('payrollEmpId').value = empId;
+            document.getElementById('pName').value = selectedOption.dataset.name || '';
+            document.getElementById('pDept').value = selectedOption.dataset.department || '';
+            document.getElementById('pRole').value = selectedOption.dataset.role || '';
+            document.getElementById('pSalary').value = selectedOption.dataset.salary || '';
+            calculateDeductions();
+        } else {
+            document.getElementById('payrollEmpId').value = '';
+            document.getElementById('pName').value = '';
+            document.getElementById('pDept').value = '';
+            document.getElementById('pRole').value = '';
+            document.getElementById('pSalary').value = '';
+            document.getElementById('pDeductions').value = '';
+            document.getElementById('pNet').value = '';
+        }
     }
     function openEditPayroll(button){
         var tr = button.closest('tr');
@@ -166,15 +209,22 @@ $currentUserName = $userData['name'];
         document.getElementById('pEmpIdDisplay').value = ds.empid || '';
         document.getElementById('pName').value = ds.name || '';
         document.getElementById('pDept').value = ds.department || '';
-        document.getElementById('pSalary').value = ds.base || 0;
-        document.getElementById('pDeductions').value = ds.deductions || 0;
-        document.getElementById('pNet').value = ds.net || 0;
+        document.getElementById('pRole').value = ds.role || '';
+        document.getElementById('pSalary').value = parseFloat(ds.base) || 0;
+        document.getElementById('pDeductions').value = parseFloat(ds.deductions) || 0;
+        document.getElementById('pNet').value = parseFloat(ds.net) || 0;
         document.getElementById('addPayrollBtn').style.display = 'none';
         document.getElementById('updatePayrollBtn').style.display = 'inline-block';
         document.getElementById('popup').style.display = 'flex';
     }
     function closePayrollPopup(){
         document.getElementById("popup").style.display="none";
+    }
+    function calculateDeductions(){
+        var base = parseFloat(document.getElementById('pSalary').value) || 0;
+        var deductions = (base * 0.05).toFixed(2);
+        document.getElementById('pDeductions').value = deductions;
+        recalcNet();
     }
     function recalcNet(){
         var base = parseFloat(document.getElementById('pSalary').value) || 0;
@@ -207,8 +257,15 @@ $currentUserName = $userData['name'];
     }
 
     function submitAddPayroll(){
+        var empId = document.getElementById('payrollEmpId').value;
+        if (!empId) {
+            alert('Error: Please select an employee');
+            return;
+        }
         var form = document.getElementById('payrollForm');
         var fd = new FormData(form);
+        // Ensure emp_id is included
+        fd.set('emp_id', empId);
         fetch('update_payroll.php', { method: 'POST', body: fd })
           .then(res => res.json())
           .then(json => {

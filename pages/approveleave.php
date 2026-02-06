@@ -9,12 +9,14 @@ if (!isset($_SESSION['user_id'])) {
 
 $currentUserId = $_SESSION['user_id'];
 $manager_emp_id = null;
-$stmt = $conn->prepare('SELECT emp_id FROM employees WHERE user_id = ? LIMIT 1');
+$manager_department = null;
+$stmt = $conn->prepare('SELECT emp_id, department_name FROM employees WHERE user_id = ? LIMIT 1');
 if ($stmt) {
     $stmt->bind_param('i', $currentUserId);
     $stmt->execute();
     $r = $stmt->get_result()->fetch_assoc();
     $manager_emp_id = $r['emp_id'] ?? null;
+    $manager_department = $r['department_name'] ?? null;
     $stmt->close();
 }
 $userQuery = mysqli_query($conn, "SELECT name FROM employees WHERE user_id='$currentUserId'");
@@ -41,6 +43,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['lea
     // log for debugging
     @file_put_contents(__DIR__ . '/approve_debug.log', date('c') . " - leave_id not found: $leave_id\n", FILE_APPEND);
   } else {
+    // Verify that the leave being approved is from the manager's department
+    $verify = $conn->prepare('SELECT e.department_name FROM leave_requests l JOIN employees e ON l.employee_id = e.emp_id WHERE l.leave_id = ? LIMIT 1');
+    if ($verify) {
+      $verify->bind_param('i', $leave_id);
+      $verify->execute();
+      $vr = $verify->get_result()->fetch_assoc();
+      $verify->close();
+      
+      if ($vr && $vr['department_name'] !== $manager_department) {
+        // Manager is trying to approve leave from a different department
+        @file_put_contents(__DIR__ . '/approve_debug.log', date('c') . " - Unauthorized: manager from {$manager_department} tried to approve leave from {$vr['department_name']}\n", FILE_APPEND);
+        header('Location: approveleave.php');
+        exit();
+      }
+    }
     if ($manager_emp_id === null) {
       $sql = 'UPDATE leave_requests SET status = ?, approved_by = NULL, remarks = ? WHERE leave_id = ?';
       $stmt = $conn->prepare($sql);
@@ -68,11 +85,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['lea
   exit();
 }
 
-// fetch pending requests
+// fetch pending requests - only from manager's department
 $requests = [];
-$res = $conn->query("SELECT l.*, e.name, e.department_name FROM leave_requests l JOIN employees e ON l.employee_id = e.emp_id WHERE l.status = 'Pending' ORDER BY l.applied_date ASC");
+$res = $conn->prepare("SELECT l.*, e.name, e.department_name FROM leave_requests l JOIN employees e ON l.employee_id = e.emp_id WHERE l.status = 'Pending' AND e.department_name = ? ORDER BY l.applied_date ASC");
 if ($res) {
-    while ($row = $res->fetch_assoc()) $requests[] = $row;
+    $res->bind_param('s', $manager_department);
+    $res->execute();
+    $result = $res->get_result();
+    while ($row = $result->fetch_assoc()) $requests[] = $row;
+    $res->close();
 }
 ?>
 <!DOCTYPE html>
@@ -109,7 +130,7 @@ if ($res) {
   <main id="main-content">
      <div class="container">
     <h2>Approve Leave Requests</h2>
-
+<hr>
     <div id="leaveList">
       <?php if (count($requests) === 0): ?>
         <p>No pending leave requests.</p>
@@ -119,6 +140,7 @@ if ($res) {
             <div class="left">
                 <p><strong>Name:</strong> <?= htmlspecialchars($r['name']) ?></p>
                 <p><strong>Department:</strong> <?= htmlspecialchars($r['department_name']) ?></p>
+                <p><strong>Leave Type:</strong> <?= htmlspecialchars($r['leave_type']) ?></p>
                 <p><strong>Reason:</strong> <?= htmlspecialchars($r['reason']) ?></p>
                 <p><strong>From:</strong> <?= htmlspecialchars($r['start_date']) ?></p>
                 <p><strong>To:</strong> <?= htmlspecialchars($r['end_date']) ?></p>

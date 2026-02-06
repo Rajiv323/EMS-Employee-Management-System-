@@ -13,6 +13,20 @@ $stmt->bind_param('i', $currentUserId);
 $stmt->execute();
 $result = $stmt->get_result();
 $employee = $result->fetch_assoc() ?: [];
+
+// Fetch employees in same department
+$dept_employees = [];
+if (!empty($employee['department_name'])) {
+    $dept = $employee['department_name'];
+    $stmt = $conn->prepare("SELECT e.*, u.username AS email FROM employees e LEFT JOIN users u ON e.user_id = u.user_id WHERE e.department_name = ? AND e.user_id != ? ORDER BY e.name ASC");
+    if ($stmt) {
+        $stmt->bind_param('si', $dept, $currentUserId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) $dept_employees[] = $row;
+        $stmt->close();
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -39,8 +53,8 @@ $employee = $result->fetch_assoc() ?: [];
       <img src="../assets/emp.jpg" class="user-photo">
       <h3><?= htmlspecialchars($employee['name'] ?? 'Manager') ?></h3></p>
         <hr>
-        <a href="profile.php" class="menu-item">My Profile</a><br>
-        <a href="payslip.php" class="menu-item">My Payslip</a><br>
+        <a href="managerprofile.php" class="menu-item">My Profile</a><br>
+        <a href="managerpayslip.php" class="menu-item">My Payslip</a><br>
         <a href="approveleave.php" class="menu-item">Approve Leave</a><br>
     </div>
   </aside>
@@ -97,10 +111,40 @@ $employee = $result->fetch_assoc() ?: [];
             </div>
             <div class="field">
               <div class="label">Date Joined</div>
-              <div class="value" id="dateJoined"><?= htmlspecialchars($employee['date_joined'] ?? $employee['joined_date'] ?? '') ?></div>
+              <div class="value" id="dateJoined"><?= htmlspecialchars($employee['date_of_joining'] ?? $employee['joined_date'] ?? '') ?></div>
             </div>
           </div>
         </div>
+      </div>
+
+      <div  class="profile-wrapper" style="display: block">
+        <h3 style="margin-bottom: 15px;">Department Team</h3>
+        <table style="width:100%; border-collapse:collapse; border:1px solid #ddd;">
+          <thead>
+            <tr style="background-color:#f0f0f0;">
+              <th style="padding:10px; border:1px solid #ddd; text-align:left;">Name</th>
+              <th style="padding:10px; border:1px solid #ddd; text-align:left;">Email</th>
+              <th style="padding:10px; border:1px solid #ddd; text-align:left;">Position</th>
+              <th style="padding:10px; border:1px solid #ddd; text-align:left;">Phone</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php if (count($dept_employees) === 0): ?>
+              <tr>
+                <td colspan="4" style="padding:10px; border:1px solid #ddd; text-align:center;">No other employees in this department</td>
+              </tr>
+            <?php else: ?>
+              <?php foreach ($dept_employees as $emp): ?>
+                <tr>
+                  <td style="padding:10px; border:1px solid #ddd;"><?= htmlspecialchars($emp['name'] ?? '') ?></td>
+                  <td style="padding:10px; border:1px solid #ddd;"><?= htmlspecialchars($emp['email'] ?? '') ?></td>
+                  <td style="padding:10px; border:1px solid #ddd;"><?= htmlspecialchars($emp['role'] ?? '') ?></td>
+                  <td style="padding:10px; border:1px solid #ddd;"><?= htmlspecialchars($emp['phone'] ?? '') ?></td>
+                </tr>
+              <?php endforeach; ?>
+            <?php endif; ?>
+          </tbody>
+        </table>
       </div>
     </main>
   </main>

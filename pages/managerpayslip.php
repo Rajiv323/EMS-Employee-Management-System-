@@ -25,6 +25,21 @@ if ($empId) {
         $payroll = $prow;
     }
 }
+
+// Fetch department employees with payroll data
+$dept_employees_payroll = [];
+if (!empty($employee['department_name'])) {
+    $dept = $employee['department_name'];
+    $sql = "SELECT e.*, u.username AS email, p.basic_salary, p.deductions, p.net_salary FROM employees e LEFT JOIN users u ON e.user_id = u.user_id LEFT JOIN payroll p ON e.emp_id = p.emp_id WHERE e.department_name = ? AND e.user_id != ? ORDER BY e.name ASC";
+    $stmt = $conn->prepare($sql);
+    if ($stmt) {
+        $stmt->bind_param('si', $dept, $currentUserId);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) $dept_employees_payroll[] = $row;
+        $stmt->close();
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -102,6 +117,39 @@ if ($empId) {
 
       <button onclick="openPayslip()" class="downloadpayslip">Download PDF</button>
 
+    </div>
+</div>
+<div class="payslip-container">
+    <h3 style="margin-top: 40px;">Department Payslips</h3>
+    <div class="payslip-card">
+      <table style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr style="background-color:#f0f0f0;">
+            <th style="padding:10px; border:1px solid #ddd; text-align:left;">Employee Name</th>
+            <th style="padding:10px; border:1px solid #ddd; text-align:left;">Position</th>
+            <th style="padding:10px; border:1px solid #ddd; text-align:center;">Basic Salary</th>
+            <th style="padding:10px; border:1px solid #ddd; text-align:center;">Deductions</th>
+            <th style="padding:10px; border:1px solid #ddd; text-align:center;">Net Salary</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if (count($dept_employees_payroll) === 0): ?>
+            <tr>
+              <td colspan="5" style="padding:10px; border:1px solid #ddd; text-align:center;">No other employees in this department</td>
+            </tr>
+          <?php else: ?>
+            <?php foreach ($dept_employees_payroll as $emp): ?>
+              <tr>
+                <td style="padding:10px; border:1px solid #ddd;"><?= htmlspecialchars($emp['name'] ?? '') ?></td>
+                <td style="padding:10px; border:1px solid #ddd;"><?= htmlspecialchars($emp['role'] ?? '') ?></td>
+                <td style="padding:10px; border:1px solid #ddd; text-align:center;">Rs. <?= number_format((float)($emp['basic_salary'] ?? 0), 2) ?></td>
+                <td style="padding:10px; border:1px solid #ddd; text-align:center;">Rs. <?= number_format((float)($emp['deductions'] ?? 0), 2) ?></td>
+                <td style="padding:10px; border:1px solid #ddd; text-align:center;">Rs. <?= number_format((float)($emp['net_salary'] ?? 0), 2) ?></td>
+              </tr>
+            <?php endforeach; ?>
+          <?php endif; ?>
+        </tbody>
+      </table>
     </div>
   </div>
   </main>

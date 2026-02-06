@@ -1,7 +1,7 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: #f3f4f6;
+    background: #e2cbf5;
 }
 
 /* NAVBAR */
@@ -15,6 +15,7 @@ body {
     padding: 0 20px;
     position: sticky;
     top: 0;
+    box-shadow: 5px 5px 5px rgba(0,0,0,0.1);
 }
 
 .logout-btn {
@@ -30,12 +31,13 @@ body {
 .sidebar {
     width: 230px;
     height: 100vh;
-    background: white;
+    background: rgb(240, 240, 240);
     position: fixed;
     top: 60px;
     left: 0;
     border-right: 1px solid #ddd;
     padding-top: 20px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
 }
 
 .user-box {
@@ -73,8 +75,7 @@ body {
     border-radius: 6px;
 }
 
-.menu-item:hover,
-.menu-item.active {
+.menu-item:hover{
     background: #6d28d9;
     color: white;
 }
@@ -83,7 +84,7 @@ body {
 .main {
     margin-left: 230px;
     padding: 20px;
-    margin-top:-20px;
+    margin-top:-20px;   
 }
 .side-btn{
     width: 100%;

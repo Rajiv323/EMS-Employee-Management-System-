@@ -2,7 +2,7 @@
 .container {
     width: 70%;
     margin: 40px 270px;
-    background: white;
+    background: rgb(240, 240, 240);
     padding: 25px;
     border-radius: 10px;
     box-shadow: 0 0 8px rgba(0,0,0,0.2);
@@ -24,11 +24,12 @@ h2 {
 /* Leave Card */
 .leave-card {
     justify-content: space-between;
-    background: #fafafa;
+    background: rgb(247, 247, 247);
     padding: 18px;
     border-radius: 10px;
     margin-bottom: 15px;
-    border: 1px solid #363438;
+    border: 1px solid #d8c5c5;
+    box-shadow: 4px 4px 4px rgba(0,0,0,0.05);
     transition: 0.3s;
     width: 20%;
 }

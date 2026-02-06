@@ -127,6 +127,7 @@ if ($emp_id) {
   <main id="main-content">
     <main class="main">
       <h2>Request Leave</h2>
+      <hr>
       <?php if ($message !== ''): ?>
         <div class="message"><?= htmlspecialchars($message) ?></div>
       <?php endif; ?>
@@ -137,7 +138,7 @@ if ($emp_id) {
           <option value="">Select Leave Type</option>
           <option value="Sick Leave">Sick Leave</option>
           <option value="Casual Leave">Casual Leave</option>
-          <option value="Paid Leave">Paid Leave</option>
+          <option value="Paid Leave">Unpaid Leave</option>
         </select>
         <br>
         <label>Start Date</label>
@@ -153,7 +154,7 @@ if ($emp_id) {
 
         <button type="submit" name="submit_leave">Submit Request</button>
       </form>
-
+        <hr>
       <h3 style="margin-top:20px">My Leave Requests</h3>
       <table class="leave-table" style="width:100%; border-collapse:collapse">
         <thead>

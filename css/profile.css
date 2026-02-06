@@ -2,7 +2,7 @@
   max-width: 1000px;
   margin: 28px auto;
   padding: 20px;
-  background: #fff;
+  background: rgb(240, 240, 240);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   display: flex;
@@ -13,7 +13,8 @@
   flex: 0 0 260px;
   text-align: center;
   padding: 16px;
-  border-right: 1px solid #eee;
+  border-right: 1px solid #0f0f0f;
+  margin-top: 60px;
 }
 .avatar {
   width: 120px;
@@ -60,6 +61,7 @@
   background: #fafafa;
   padding: 10px;
   border-radius: 6px;
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.03);
 }
 .label {
   font-size: 12px;

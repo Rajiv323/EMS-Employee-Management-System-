@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->close();
     
     // Use password_verify() for hashed passwords
-    if ($password=!$user["password"]) {
+    if ($password != $user["password"]) {
         $_SESSION['login_error'] = "Incorrect password";
         header("Location: login.php");
         exit;

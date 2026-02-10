@@ -25,6 +25,8 @@ body {
     border-radius: 6px;
     border: none;
     cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
 }
 
 /* SIDEBAR */
@@ -78,6 +80,14 @@ body {
 .menu-item:hover{
     background: #6d28d9;
     color: white;
+}
+
+.menu-item.active {
+    background: #6d28d9;
+    color: white;
+    font-weight: bold;
+    border-left: 4px solid #a78bfa;
+    padding-left: 6px;
 }
 
 /* MAIN */

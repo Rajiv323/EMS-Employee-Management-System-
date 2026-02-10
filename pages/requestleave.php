@@ -1,6 +1,7 @@
 <?php
 session_start();
 include "../php/db.php";
+include "../sidenav.php";
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../login.php');
@@ -111,7 +112,7 @@ if ($emp_id) {
   </header>
 
   <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar-menu">
+  <!-- <aside class="sidebar" id="sidebar-menu">
     <div class="user-box">
       <p>
         <img src="<?= htmlspecialchars(!empty($currentUserPhoto) ? '../assets/' . $currentUserPhoto : '../assets/emp.jpg') ?>" class="user-photo">
@@ -122,7 +123,7 @@ if ($emp_id) {
       <a href="payslip.php" class="menu-item">My Payslip</a><br>
       <a href="requestleave.php" class="menu-item">Request Leave</a><br>
     </div>
-  </aside>
+  </aside> -->
 
   <!-- MAIN CONTENT -->
   <main id="main-content">
@@ -139,7 +140,7 @@ if ($emp_id) {
           <option value="">Select Leave Type</option>
           <option value="Sick Leave">Sick Leave</option>
           <option value="Casual Leave">Casual Leave</option>
-          <option value="Paid Leave">Unpaid Leave</option>
+          <option value="Unpaid Leave">Unpaid Leave</option>
         </select>
         <br>
         <label>Start Date</label>

@@ -1,6 +1,7 @@
 <?php
 session_start();
 include "php/db.php";
+include "sidenav.php";
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -33,7 +34,7 @@ $currentUserPhoto = !empty($userData['photo']) ? $userData['photo'] : 'emp.jpg';
   </header>
 
   <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar-menu">
+  <!-- <aside class="sidebar" id="sidebar-menu">
     <div class="user-box">
         <p>
       <img src="assets/<?= htmlspecialchars($currentUserPhoto) ?>" class="user-photo">
@@ -42,7 +43,7 @@ $currentUserPhoto = !empty($userData['photo']) ? $userData['photo'] : 'emp.jpg';
         <a href="pages/manageemployee.php" class="menu-item">Manage Employees</a><br>
         <a href="pages/payroll.html" class="menu-item">Manage Payroll</a>
     </div>
-  </aside>
+  </aside> -->
 
   <!-- MAIN CONTENT -->
   <main id="main-content">

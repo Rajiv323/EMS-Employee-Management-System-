@@ -1,6 +1,7 @@
 <?php
 session_start();
 include "../php/db.php";
+include "../sidenav.php";
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../login.php');
@@ -19,10 +20,7 @@ if ($stmt) {
     $manager_department = $r['department_name'] ?? null;
     $stmt->close();
 }
-$userQuery = mysqli_query($conn, "SELECT name, photo FROM employees WHERE user_id='$currentUserId'");
-$userData = mysqli_fetch_assoc($userQuery);
-$currentUserName = $userData['name'];
-$currentUserPhoto = $userData['photo'] ?? null;
+
 // handle approve/reject
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['leave_id'])) {
   $action = $_POST['action'] === 'approve' ? 'Approved' : 'Rejected';
@@ -88,6 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['lea
 
 // fetch pending requests - only from manager's department
 $requests = [];
+
 $res = $conn->prepare("SELECT l.*, e.name, e.department_name, e.photo FROM leave_requests l JOIN employees e ON l.employee_id = e.emp_id WHERE l.status = 'Pending' AND e.department_name = ? ORDER BY l.applied_date ASC");
 if ($res) {
     $res->bind_param('s', $manager_department);
@@ -113,19 +112,6 @@ if ($res) {
     <h1 class="logo">EMS</h1>
     <button class="logout-btn" onclick="logout()">Logout</button>
   </header>
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar-menu">
-    <div class="user-box">
-        <p>
-      <img src="<?= htmlspecialchars(!empty($currentUserPhoto) ? '../assets/' . $currentUserPhoto : '../assets/emp.jpg') ?>" class="user-photo">
-      <h3><?= htmlspecialchars($currentUserName) ?></h3></p>
-        <hr>
-        <a href="managerprofile.php" class="menu-item">My Profile</a><br>
-        <a href="managerpayslip.php" class="menu-item">My Payslip</a><br>
-        <a href="approveleave.php" class="menu-item">Approve Leave</a><br>
-    </div>
-  </aside>
 
   <!-- MAIN CONTENT -->
   <main id="main-content">

@@ -1,6 +1,8 @@
 <?php
 SESSION_START();
+
 include "../php/db.php";
+include "../sidenav.php";
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../login.php");
@@ -8,12 +10,12 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // Fetch current user info for sidebar
-$currentUserId = $_SESSION['user_id'];
-$userQuery = mysqli_query($conn, "SELECT name, photo FROM employees WHERE user_id='$currentUserId'");
-$userData = mysqli_fetch_assoc($userQuery);
-$currentUserName = $userData['name'];
-$currentUserPhoto = $userData['photo'] ?? null;
-?>
+// $currentUserId = $_SESSION['user_id'];
+// $userQuery = mysqli_query($conn, "SELECT name, photo FROM employees WHERE user_id='$currentUserId'");
+// $userData = mysqli_fetch_assoc($userQuery);
+// $currentUserName = $userData['name'];
+// $currentUserPhoto = $userData['photo'] ?? null;
+// ?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -33,7 +35,7 @@ $currentUserPhoto = $userData['photo'] ?? null;
   </header>
 
   <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar-menu">
+  <!-- <aside class="sidebar" id="sidebar-menu">
     <div class="user-box">
         <p>
     <img src="<?= htmlspecialchars(!empty($currentUserPhoto) ? '../assets/' . $currentUserPhoto : '../assets/emp.jpg') ?>" class="user-photo">
@@ -42,7 +44,7 @@ $currentUserPhoto = $userData['photo'] ?? null;
         <a href="manageemployee.php" class="menu-item">Manage Employees</a><br>
         <a href="payroll.php" class="menu-item">Manage Payroll</a>
     </div>
-  </aside>
+  </aside> -->
 
   <!-- MAIN CONTENT -->
   <main id="main-content">
@@ -223,9 +225,24 @@ $currentUserPhoto = $userData['photo'] ?? null;
     }
     function calculateDeductions(){
         var base = parseFloat(document.getElementById('pSalary').value) || 0;
-        var deductions = (base * 0.05).toFixed(2);
-        document.getElementById('pDeductions').value = deductions;
-        recalcNet();
+        // Call server endpoint to compute Nepal tax/deductions
+        fetch('../php/calc_tax.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'salary=' + encodeURIComponent(base)
+        }).then(function(res){ return res.json(); })
+        .then(function(json){
+            if (json.status === 'success') {
+                document.getElementById('pDeductions').value = parseFloat(json.tax).toFixed(2);
+            } else {
+                // fallback to 5% if error
+                document.getElementById('pDeductions').value = (base * 0.05).toFixed(2);
+            }
+            recalcNet();
+        }).catch(function(){
+            document.getElementById('pDeductions').value = (base * 0.05).toFixed(2);
+            recalcNet();
+        });
     }
     function recalcNet(){
         var base = parseFloat(document.getElementById('pSalary').value) || 0;

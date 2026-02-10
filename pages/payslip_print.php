@@ -26,6 +26,84 @@ if ($empId) {
     }
 }
 
+// Calculate overtime and unpaid leave for the current month
+$monthStart = date('Y-m-01');
+$monthEnd = date('Y-m-t');
+$overtime_hours = 0.0;
+$overtime_pay = 0.0;
+$unpaid_days = 0;
+$unpaid_deduction = 0.0;
+
+if ($empId) {
+    // Sum overtime hours for this month. Try both possible column names and use DATE() for matching.
+    $overtime_hours = 0.0;
+    $query1 = "SELECT SUM(overtime_hours) AS total_hours FROM overtime WHERE DATE(overtime_date) BETWEEN ? AND ? AND employee_id = ?";
+    $query2 = "SELECT SUM(overtime_hours) AS total_hours FROM overtime WHERE DATE(overtime_date) BETWEEN ? AND ? AND emp_id = ?";
+
+    $ot_stmt = $conn->prepare($query1);
+    if ($ot_stmt) {
+      $ot_stmt->bind_param('ssi', $monthStart, $monthEnd, $empId);
+      $ot_stmt->execute();
+      $ot_res = $ot_stmt->get_result();
+      $ot_row = $ot_res->fetch_assoc();
+      $overtime_hours = (float)($ot_row['total_hours'] ?? 0);
+      $ot_stmt->close();
+    } else {
+      // try alternative column name
+      $ot_stmt = $conn->prepare($query2);
+      if ($ot_stmt) {
+        $ot_stmt->bind_param('ssi', $monthStart, $monthEnd, $empId);
+        $ot_stmt->execute();
+        $ot_res = $ot_stmt->get_result();
+        $ot_row = $ot_res->fetch_assoc();
+        $overtime_hours = (float)($ot_row['total_hours'] ?? 0);
+        $ot_stmt->close();
+      }
+    }
+
+    // Compute unpaid leave days overlapping this month (only approved leaves)
+    $lr_stmt = $conn->prepare("SELECT start_date, end_date, total_days, leave_type, status FROM leave_requests WHERE employee_id = ? AND status = 'Approved' AND NOT (end_date < ? OR start_date > ?)");
+    if ($lr_stmt) {
+      $lr_stmt->bind_param('iss', $empId, $monthStart, $monthEnd);
+      $lr_stmt->execute();
+      $lr_res = $lr_stmt->get_result();
+      while ($lr = $lr_res->fetch_assoc()) {
+        $s = max($lr['start_date'], $monthStart);
+        $e = min($lr['end_date'], $monthEnd);
+        $overlap = (int)((strtotime($e) - strtotime($s)) / 86400) + 1;
+        // Treat leave types that indicate unpaid leave
+        $lt = strtolower(trim($lr['leave_type']));
+        if (in_array($lt, ['unpaid leave', 'unpaid', 'leave without pay', 'without pay'])) {
+          $unpaid_days += $overlap;
+        }
+      }
+      $lr_stmt->close();
+    }
+
+    // Calculate monetary values
+    $basic_salary = (float)($payroll['basic_salary'] ?? 0);
+    // hourly assumption: 208 working hours per month (26 days * 8 hours)
+    $hourly_rate = $basic_salary / 208.0;
+    $overtime_pay = round($overtime_hours * $hourly_rate, 2);
+    // unpaid deduction: daily rate = basic / 30
+    $daily_rate = $basic_salary / 30.0;
+    $unpaid_deduction = round($daily_rate * $unpaid_days, 2);
+
+    // Combined deductions for display (existing payroll deductions + unpaid leave)
+    $existing_deductions = (float)($payroll['deductions'] ?? 0);
+    $total_deductions = round($existing_deductions + $unpaid_deduction, 2);
+    $computed_net = round($basic_salary + $overtime_pay - $total_deductions, 2);
+} else {
+    $basic_salary = 0;
+    $hourly_rate = 0;
+    $overtime_pay = 0;
+    $unpaid_days = 0;
+    $unpaid_deduction = 0;
+    $existing_deductions = 0;
+    $total_deductions = 0;
+    $computed_net = 0;
+}
+
 $monthLabel = date('F Y');
 // If download requested and a server PDF library exists, attempt server-side PDF generation
 $download = isset($_GET['download']) && $_GET['download'] == '1';
@@ -57,7 +135,7 @@ ob_start();
       </div>
       <div class="salary-box">
         <p>Total Salary</p>
-        <h2>Rs. <?= number_format((float)$payroll['net_salary'], 2) ?></h2>
+        <h2>Rs. <?= number_format((float)$computed_net, 2) ?></h2>
       </div>
     </div>
     <hr>
@@ -68,14 +146,17 @@ ob_start();
     <hr>
     <div class="breakdown">
       <h4>Earnings</h4>
-      <p>Basic Salary: Rs. <?= number_format((float)$payroll['basic_salary'], 2) ?></p>
+      <p>Basic Salary: Rs. <?= number_format((float)$basic_salary, 2) ?></p>
+      <p>Overtime Pay (<?= htmlspecialchars(number_format($overtime_hours, 2)) ?> hrs): Rs. <?= number_format((float)$overtime_pay, 2) ?></p>
       <h4>Deductions</h4>
-      <p>Rs. <?= number_format((float)$payroll['deductions'], 2) ?></p>
+      <p>Tax / Other: Rs. <?= number_format((float)$existing_deductions, 2) ?></p>
+      <p>Unpaid Leave (<?= htmlspecialchars($unpaid_days) ?> days): Rs. <?= number_format((float)$unpaid_deduction, 2) ?></p>
+      <p><strong>Total Deductions:</strong> Rs. <?= number_format((float)$total_deductions, 2) ?></p>
     </div>
     <hr>
     <div class="netpay">
       <p>Net Pay:</p>
-      <h2>Rs. <?= number_format((float)$payroll['net_salary'], 2) ?></h2>
+      <h2>Rs. <?= number_format((float)$computed_net, 2) ?></h2>
     </div>
   </div>
 

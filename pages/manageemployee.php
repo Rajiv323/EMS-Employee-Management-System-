@@ -1,7 +1,7 @@
 <?php
 session_start();
 include "../php/db.php";
-
+include "../sidenav.php";
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../login.php");
@@ -340,7 +340,7 @@ $result = mysqli_query($conn, "SELECT e.*, u.username AS email, u.user_id AS use
     </header>
 
     <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar-menu">
+    <!-- <aside class="sidebar" id="sidebar-menu">
       <div class="user-box">
         <img src="<?= htmlspecialchars(!empty($currentUserPhoto) ? '../assets/' . $currentUserPhoto : '../assets/emp.jpg') ?>" class="user-photo" />
         <h3><?= htmlspecialchars($currentUserName) ?></h3>
@@ -350,7 +350,7 @@ $result = mysqli_query($conn, "SELECT e.*, u.username AS email, u.user_id AS use
         ><br />
         <a href="payroll.php" class="menu-item">Manage Payroll</a>
       </div>
-    </aside>
+    </aside> -->
 
     <!-- MAIN CONTENT -->
     <main id="main-content">

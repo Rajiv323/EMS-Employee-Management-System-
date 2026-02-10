@@ -1,6 +1,7 @@
 <?php
 SESSION_START();
 include "../php/db.php";
+include "../sidenav.php";
 // Check login
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../login.php");
@@ -33,7 +34,7 @@ $employee = $result->fetch_assoc() ?: [];
   </header>
 
   <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar-menu">
+  <!-- <aside class="sidebar" id="sidebar-menu">
     <div class="user-box">
         <p>
       <img src="<?= htmlspecialchars(!empty($employee['photo']) ? '../assets/' . $employee['photo'] : '../assets/emp.jpg') ?>" class="user-photo">
@@ -43,7 +44,7 @@ $employee = $result->fetch_assoc() ?: [];
         <a href="payslip.php" class="menu-item">My Payslip</a><br>
         <a href="requestleave.php" class="menu-item">Request Leave</a><br>
     </div>
-  </aside>
+  </aside> -->
 
   <!-- MAIN CONTENT -->
   <main id="main-content" class="main">

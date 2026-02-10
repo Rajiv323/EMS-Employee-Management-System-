@@ -3,3 +3,8 @@
 2026-01-09T10:55:37+01:00 - SQL: UPDATE leave_requests SET status = ?, approved_by = ?, remarks = ? WHERE leave_id = ? | params: [Approved, 103, , 5] | affected=1
 2026-01-18T04:05:13+01:00 - SQL: UPDATE leave_requests SET status = ?, approved_by = ?, remarks = ? WHERE leave_id = ? | params: [Rejected, 112, you don't deserve, 6] | affected=1
 2026-02-06T15:24:53+01:00 - SQL: UPDATE leave_requests SET status = ?, approved_by = ?, remarks = ? WHERE leave_id = ? | params: [Rejected, 103, , 7] | affected=1
+2026-02-09T08:06:23+01:00 - SQL: UPDATE leave_requests SET status = ?, approved_by = ?, remarks = ? WHERE leave_id = ? | params: [Approved, 103, , 11] | affected=1
+2026-02-09T13:31:05+01:00 - SQL: UPDATE leave_requests SET status = ?, approved_by = ?, remarks = ? WHERE leave_id = ? | params: [Approved, 103, , 12] | affected=1
+2026-02-10T21:06:51+05:45 - SQL: UPDATE leave_requests SET status = ?, approved_by = ?, remarks = ? WHERE leave_id = ? | params: [Approved, 103, , 10] | affected=1
+2026-02-10T21:35:50+05:45 - SQL: UPDATE leave_requests SET status = ?, approved_by = ?, remarks = ? WHERE leave_id = ? | params: [Approved, 103, , 13] | affected=1
+2026-02-10T21:36:30+05:45 - SQL: UPDATE leave_requests SET status = ?, approved_by = ?, remarks = ? WHERE leave_id = ? | params: [Approved, 103, , 16] | affected=1

@@ -111,7 +111,7 @@ if ($empId) {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>EMS Dashboard</title>
+  <title>Payroll Details</title>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="../css/payslip.css">
 </head>
@@ -123,19 +123,6 @@ if ($empId) {
     <h1 class="logo">EMS</h1>
     <button class="logout-btn" onclick="logout()">Logout</button>
   </header>
-
-  <!-- SIDEBAR -->
-  <!-- <aside class="sidebar" id="sidebar-menu">
-    <div class="user-box">
-        <p>
-      <img src="<?= htmlspecialchars(!empty($employee['photo']) ? '../assets/' . $employee['photo'] : '../assets/emp.jpg') ?>" class="user-photo">
-      <h3><?= htmlspecialchars($employee['name'] ?? 'Manager') ?></h3></p>
-        <hr>
-        <a href="profile.php" class="menu-item">My Profile</a><br>
-        <a href="payslip.php" class="menu-item">My Payslip</a><br>
-        <a href="requestleave.php" class="menu-item">Request Leave</a><br>
-    </div>
-  </aside> -->
 
   <!-- MAIN CONTENT -->
   <main id="main-content">

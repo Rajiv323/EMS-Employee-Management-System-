@@ -20,7 +20,7 @@ $employee = $result->fetch_assoc() ?: [];
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>EMS Dashboard</title>
+  <title>Personal Profile</title>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="../css/profile.css">
 </head>

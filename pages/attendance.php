@@ -109,6 +109,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             }
         }
     }
+
+    // Handle Generate Report (Manager or HR)
+    elseif ($action == 'generate_report' && ($userRole == 'manager' || $userRole == 'HR')) {
+        $start_date = $_POST['start_date'] ?? date('Y-m-01');
+        $end_date = $_POST['end_date'] ?? date('Y-m-d');
+
+        if ($userRole == 'manager') {
+            $report_stmt = $conn->prepare("SELECT a.attendance_date, a.check_in_time, a.status, e.name AS emp_name, e.department_name FROM attendance a JOIN employees e ON a.emp_id = e.emp_id WHERE e.department_name = ? AND a.attendance_date BETWEEN ? AND ? ORDER BY a.attendance_date ASC");
+            $report_stmt->bind_param('sss', $emp_department, $start_date, $end_date);
+        } else {
+            // HR: all employees
+            $report_stmt = $conn->prepare("SELECT a.attendance_date, a.check_in_time, a.status, e.name AS emp_name, e.department_name FROM attendance a JOIN employees e ON a.emp_id = e.emp_id WHERE a.attendance_date BETWEEN ? AND ? ORDER BY a.attendance_date ASC");
+            $report_stmt->bind_param('ss', $start_date, $end_date);
+        }
+
+        if (!$report_stmt->execute()) {
+            $error = 'Failed to generate report.';
+        } else {
+            $report_result = $report_stmt->get_result();
+
+            // Prepare CSV download
+            $filename = sprintf('attendance_report_%s_%s_to_%s.csv', $userRole, $start_date, $end_date);
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Employee Name', 'Department', 'Date', 'Check-in Time', 'Status']);
+
+            while ($row = $report_result->fetch_assoc()) {
+                $date = $row['attendance_date'];
+                $checkin = $row['check_in_time'] ? date('h:i A', strtotime($row['check_in_time'])) : '';
+                fputcsv($out, [$row['emp_name'], $row['department_name'], $date, $checkin, $row['status']]);
+            }
+
+            fclose($out);
+            exit();
+        }
+    }
 }
 
 // Fetch today's attendance status (for employees checking in)
@@ -256,6 +293,25 @@ if ($userRole == 'manager') {
                                 required>
                         </div>
                         <button type="submit" class="btn-submit">Add Overtime</button>
+                    </form>
+                </div>
+            <?php endif; ?>
+
+             <!-- Report Generation for Manager or HR -->
+            <?php if ($userRole == 'manager' || $userRole == 'HR'): ?>
+                <div class="attendance-card">
+                    <h2>Generate Attendance Report</h2>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="generate_report">
+                        <div class="form-group">
+                            <label for="start_date">Start Date:</label>
+                            <input type="date" name="start_date" id="start_date" value="<?php echo date('Y-m-01'); ?>" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="end_date">End Date:</label>
+                            <input type="date" name="end_date" id="end_date" value="<?php echo date('Y-m-d'); ?>" required>
+                        </div>
+                        <button type="submit" class="btn-submit">Generate Report (CSV)</button>
                     </form>
                 </div>
             <?php endif; ?>

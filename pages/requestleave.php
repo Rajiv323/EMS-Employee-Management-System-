@@ -111,19 +111,6 @@ if ($emp_id) {
     <button class="logout-btn" onclick="logout()">Logout</button>
   </header>
 
-  <!-- SIDEBAR -->
-  <!-- <aside class="sidebar" id="sidebar-menu">
-    <div class="user-box">
-      <p>
-        <img src="<?= htmlspecialchars(!empty($currentUserPhoto) ? '../assets/' . $currentUserPhoto : '../assets/emp.jpg') ?>" class="user-photo">
-        <h3><?= htmlspecialchars($currentUserName) ?></h3>
-      </p>
-      <hr>
-      <a href="profile.php" class="menu-item">My Profile</a><br>
-      <a href="payslip.php" class="menu-item">My Payslip</a><br>
-      <a href="requestleave.php" class="menu-item">Request Leave</a><br>
-    </div>
-  </aside> -->
 
   <!-- MAIN CONTENT -->
   <main id="main-content">

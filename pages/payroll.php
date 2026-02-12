@@ -21,7 +21,7 @@ if (!isset($_SESSION['user_id'])) {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>EMS Dashboard</title>
+  <title>Payroll Details</title>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="../css/payroll.css">
 </head>
@@ -33,20 +33,6 @@ if (!isset($_SESSION['user_id'])) {
     <h1 class="logo">EMS</h1>
     <button class="logout-btn" onclick="logout()">Logout</button>
   </header>
-
-  <!-- SIDEBAR -->
-  <!-- <aside class="sidebar" id="sidebar-menu">
-    <div class="user-box">
-        <p>
-    <img src="<?= htmlspecialchars(!empty($currentUserPhoto) ? '../assets/' . $currentUserPhoto : '../assets/emp.jpg') ?>" class="user-photo">
-    <h3><?= htmlspecialchars($currentUserName) ?></h3></p>
-        <hr>
-        <a href="manageemployee.php" class="menu-item">Manage Employees</a><br>
-        <a href="payroll.php" class="menu-item">Manage Payroll</a>
-    </div>
-  </aside> -->
-
-  <!-- MAIN CONTENT -->
   <main id="main-content">
      <div class="main">
         <div class="toolbar">

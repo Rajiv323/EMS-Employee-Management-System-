@@ -146,6 +146,19 @@ if (isset($_POST['deleteEmployee'])) {
   }
   $stmt->close();
 
+  // Delete attendance records first
+$stmt = $conn->prepare('DELETE FROM attendance WHERE emp_id = ?');
+if ($stmt === false) {
+  mysqli_rollback($conn);
+  die('Prepare failed (delete attendance): ' . $conn->error);
+}
+$stmt->bind_param('i', $emp_id);
+if (!$stmt->execute()) {
+  mysqli_rollback($conn);
+  die('Error deleting attendance: ' . $stmt->error);
+}
+$stmt->close();
+
   // Now delete the employee
   $stmt = $conn->prepare('DELETE FROM employees WHERE emp_id = ?');
   if ($stmt === false) {

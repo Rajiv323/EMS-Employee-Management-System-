@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             $error = "Please select an employee and enter overtime hours.";
         } else {
             // Check if overtime record exists
-            $check_query = $conn->prepare("SELECT overtime_id FROM overtime WHERE employee_id = ? AND overtime_date = ?");
+            $check_query = $conn->prepare("SELECT overtime_id FROM overtime WHERE emp_id = ? AND overtime_date = ?");
             $check_query->bind_param("is", $overtime_emp_id, $overtime_date);
             $check_query->execute();
             $result = $check_query->get_result();
@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 }
             } else {
                 // Insert new record
-                $insert_query = $conn->prepare("INSERT INTO overtime (employee_id, overtime_date, overtime_hours, added_by) VALUES (?, ?, ?, ?)");
+                $insert_query = $conn->prepare("INSERT INTO overtime (emp_id, overtime_date, overtime_hours, added_by) VALUES (?, ?, ?, ?)");
                 $insert_query->bind_param("isdi", $overtime_emp_id, $overtime_date, $overtime_hours, $emp_id);
 
                 if ($insert_query->execute()) {
